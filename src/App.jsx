@@ -14,7 +14,11 @@ const STATUS_MAP = Object.fromEntries(STATUSES.map(s => [s.key, s]));
 
 // ─── API ─────────────────────────────────────────────────────────────────────
 async function apiFetch(method, path, body) {
-  const res = await fetch(`${API}/${path}`, {
+  // پاکسازی اسلش‌های اضافی برای جلوگیری از خراب شدن آدرس URL
+  const cleanAPI = API.endsWith("/") ? API.slice(0, -1) : API;
+  const cleanPath = path.startsWith("/") ? path.slice(1) : path;
+  
+  const res = await fetch(`${cleanAPI}/${cleanPath}`, {
     method,
     headers: { "Content-Type": "application/json" },
     body: body ? JSON.stringify(body) : undefined,
@@ -72,9 +76,9 @@ function Btn({ onClick, disabled, style={}, children, variant="dark" }) {
     fontFamily:"inherit",
   };
   const variants = {
-    dark:  { background:"#111", color:"#fff" },
+    dark:   { background:"#111", color:"#fff" },
     green: { background:"#10b981", color:"#fff" },
-    red:   { background:"#fef2f2", color:"#ef4444" },
+    red:    { background:"#fef2f2", color:"#ef4444" },
     ghost: { background:"#f3f4f6", color:"#374151" },
   };
   return (
@@ -113,15 +117,32 @@ function AreaSearch({ onAdded }) {
   async function buildPreview(biz) {
     setBuilding(p => new Set([...p, biz._tid]));
     try {
-      // Save to DB first
+      // ۱. ابتدا بیزینس را در دیتابیس ذخیره می‌کنیم تا آیدی رسمی صادر شود
       const saved = await apiFetch("POST", "api/businesses", {
-        ...biz, area_searched: area, status: "prospect",
+        name: biz.name,
+        address: biz.address,
+        phone: biz.phone,
+        category: biz.category,
+        rating: biz.rating,
+        review_count: biz.review_count,
+        hours: biz.hours,
+        area_searched: area,
+        status: "prospect",
       });
-      // Generate site → get permanent URL
-      const gen = await apiFetch("POST", `api/generate/${saved.id}`);
-      setLiveUrls(p => ({ ...p, [biz._tid]: { url: gen.url, id: saved.id } }));
+      
+      // ۲. حالا آیدی واقعی صادر شده را برای کلاود می‌فرستیم تا وب‌سایت پرمیوم ساخته شود
+      const gen = await apiFetch("POST", `api/generate/${saved.id}`, saved);
+      
+      // اصلاح آدرس لینک پیش‌نمایش به آدرس مستقیم بک‌باند
+      const cleanAPI = API.endsWith("/") ? API.slice(0, -1) : API;
+      const previewLink = `${cleanAPI}/preview/${gen.slug}`;
+      
+      setLiveUrls(p => ({ ...p, [biz._tid]: { url: previewLink, id: saved.id } }));
       setSelected(p => new Set([...p, biz._tid]));
-    } catch (e) { setError(e.message); }
+    } catch (e) { 
+      console.error(e);
+      setError(e.message); 
+    }
     setBuilding(p => { const n = new Set(p); n.delete(biz._tid); return n; });
   }
 
@@ -129,10 +150,17 @@ function AreaSearch({ onAdded }) {
     setSaving(true);
     try {
       for (const biz of results.filter(r => selected.has(r._tid))) {
-        // Only save if not already saved during buildPreview
         if (!liveUrls[biz._tid]) {
           await apiFetch("POST", "api/businesses", {
-            ...biz, area_searched: area, status: "prospect",
+            name: biz.name,
+            address: biz.address,
+            phone: biz.phone,
+            category: biz.category,
+            rating: biz.rating,
+            review_count: biz.review_count,
+            hours: biz.hours,
+            area_searched: area,
+            status: "prospect",
           });
         }
       }
@@ -143,6 +171,11 @@ function AreaSearch({ onAdded }) {
 
   return (
     <div style={{ padding:"28px 32px", maxWidth:1100 }}>
+      <div style={{ background: "#fff", padding: 20, borderRadius: 12, border: "1.5px solid #e5e7eb", marginBottom: 20 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "#10b981", marginBottom: 4 }}>⚙️ API CONNECTION STATUS</div>
+        <div style={{ fontSize: 12, color: "#4b5563" }}>Connected Endpoint: <code style={{ background: "#f3f4f6", padding: "2px 6px", borderRadius: 4 }}>{API}</code></div>
+      </div>
+
       <h2 style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:20, marginBottom:5 }}>
         Find Businesses Without Websites
       </h2>
@@ -165,7 +198,7 @@ function AreaSearch({ onAdded }) {
 
       {error && (
         <div style={{ background:"#fef2f2", color:"#dc2626", padding:"11px 15px", borderRadius:10, fontSize:13, marginBottom:16 }}>
-          {error}
+          ⚠️ <strong>Error:</strong> {error}
         </div>
       )}
 
@@ -220,7 +253,6 @@ function AreaSearch({ onAdded }) {
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ fontWeight:700, fontSize:13, fontFamily:"'Syne',sans-serif" }}>{biz.name}</div>
                     <div style={{ fontSize:11, color:"#6b7280", marginTop:2 }}>{biz.category} · {biz.address}</div>
-                    <div style={{ fontSize:10, color:"#9ca3af", marginTop:2 }}>{biz.reason}</div>
                   </div>
 
                   {/* Rating */}
@@ -268,8 +300,10 @@ function AreaSearch({ onAdded }) {
 function DetailPanel({ biz, onClose, onUpdated, onDeleted }) {
   const [notes, setNotes]   = useState(biz.notes || "");
   const [status, setStatus] = useState(biz.status);
+  
+  const cleanAPI = API.endsWith("/") ? API.slice(0, -1) : API;
   const [liveUrl, setLiveUrl] = useState(
-    biz.preview_slug ? `${API}/preview/${biz.preview_slug}` : ""
+    biz.preview_slug ? `${cleanAPI}/preview/${biz.preview_slug}` : ""
   );
   const [building, setBuilding] = useState(false);
   const [saving, setSaving]     = useState(false);
@@ -291,8 +325,8 @@ function DetailPanel({ biz, onClose, onUpdated, onDeleted }) {
   async function buildSite() {
     setBuilding(true);
     try {
-      const gen = await apiFetch("POST", `api/generate/${biz.id}`);
-      setLiveUrl(gen.url);
+      const gen = await apiFetch("POST", `api/generate/${biz.id}`, biz);
+      setLiveUrl(`${cleanAPI}/preview/${gen.slug}`);
       onUpdated();
     } catch (e) { setError(e.message); }
     setBuilding(false);
@@ -443,7 +477,7 @@ function Pipeline({ refreshKey, onSelect }) {
       {loading ? (
         <div style={{ display:"flex", justifyContent:"center", padding:60 }}><Spinner size={30} dark/></div>
       ) : businesses.length === 0 ? (
-        <div style={{ textAlign:"center", padding:60, color:"#9ca3af" }}>
+        <div style={{ textalign:"center", padding:60, color:"#9ca3af" }}>
           <div style={{ fontSize:40, marginBottom:12 }}>📭</div>
           <div style={{ fontWeight:700, fontSize:15, color:"#374151" }}>No businesses yet</div>
           <div style={{ fontSize:13, marginTop:5 }}>Use Area Search to find prospects</div>
@@ -451,7 +485,8 @@ function Pipeline({ refreshKey, onSelect }) {
       ) : (
         <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
           {businesses.map(biz => {
-            const previewUrl = biz.preview_slug ? `${API}/preview/${biz.preview_slug}` : null;
+            const cleanAPI = API.endsWith("/") ? API.slice(0, -1) : API;
+            const previewUrl = biz.preview_slug ? `${cleanAPI}/preview/${biz.preview_slug}` : null;
             return (
               <div key={biz.id} onClick={() => onSelect(biz)}
                 style={{ background:"#fff", borderRadius:13, padding:"14px 18px", cursor:"pointer", border:"1.5px solid #f0f0f0", display:"flex", alignItems:"center", gap:13, transition:".15s" }}
