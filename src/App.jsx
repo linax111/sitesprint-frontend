@@ -116,7 +116,7 @@ function AreaSearch({ onAdded }) {
   async function buildPreview(biz) {
     setBuilding(p => new Set([...p, biz._tid]));
     try {
-      // ۱. ثبت بیزینس در دیتابیس برای صادر شدن آیدی معتبر عددی
+      // ۱. ثبت بیزینس در دیتابیس
       const saved = await apiFetch("POST", "api/businesses", {
         name: biz.name,
         address: biz.address,
@@ -129,12 +129,14 @@ function AreaSearch({ onAdded }) {
         status: "prospect",
       });
       
-      // ۲. ارسال آیدی واقعی به همراه بدنه دیتا به روت ساخت قالب کلاود
+      // ۲. ساخت سایت
       const gen = await apiFetch("POST", `api/generate/${saved.id}`, saved);
       
-      // هدایت مستقیم لینک پیش‌نمایش به سرور بک‌اَند ریلوای جهت جلوگیری از ۴۰۴
+      // گرفتن اسلاگ دقیق دقیقاً مثل بخش پایپ‌لاین
+      const targetSlug = gen.slug || (gen.url ? gen.url.split('/').pop() : `b-${saved.id}`);
+      
       const cleanAPI = API.endsWith("/") ? API.slice(0, -1) : API;
-      const previewLink = `${cleanAPI}/preview/${gen.slug}`;
+      const previewLink = `${cleanAPI}/preview/${targetSlug}`;
       
       setLiveUrls(p => ({ ...p, [biz._tid]: { url: previewLink, id: saved.id } }));
       setSelected(p => new Set([...p, biz._tid]));
