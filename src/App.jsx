@@ -12,9 +12,8 @@ const STATUSES = [
 ];
 const STATUS_MAP = Object.fromEntries(STATUSES.map(s => [s.key, s]));
 
-// ─── API ─────────────────────────────────────────────────────────────────────
+// ─── API FETCH UTILITY ───────────────────────────────────────────────────────
 async function apiFetch(method, path, body) {
-  // پاکسازی اسلش‌های اضافی برای جلوگیری از خراب شدن آدرس URL
   const cleanAPI = API.endsWith("/") ? API.slice(0, -1) : API;
   const cleanPath = path.startsWith("/") ? path.slice(1) : path;
   
@@ -77,9 +76,9 @@ function Btn({ onClick, disabled, style={}, children, variant="dark" }) {
   };
   const variants = {
     dark:   { background:"#111", color:"#fff" },
-    green: { background:"#10b981", color:"#fff" },
+    green:  { background:"#10b981", color:"#fff" },
     red:    { background:"#fef2f2", color:"#ef4444" },
-    ghost: { background:"#f3f4f6", color:"#374151" },
+    ghost:  { background:"#f3f4f6", color:"#374151" },
   };
   return (
     <button onClick={disabled ? undefined : onClick} disabled={disabled}
@@ -89,7 +88,7 @@ function Btn({ onClick, disabled, style={}, children, variant="dark" }) {
   );
 }
 
-// ─── AREA SEARCH ─────────────────────────────────────────────────────────────
+// ─── AREA SEARCH COMPONENT ───────────────────────────────────────────────────
 function AreaSearch({ onAdded }) {
   const [area, setArea]         = useState("Ballantyne, Charlotte NC");
   const [loading, setLoading]   = useState(false);
@@ -117,7 +116,7 @@ function AreaSearch({ onAdded }) {
   async function buildPreview(biz) {
     setBuilding(p => new Set([...p, biz._tid]));
     try {
-      // ۱. ابتدا بیزینس را در دیتابیس ذخیره می‌کنیم تا آیدی رسمی صادر شود
+      // ۱. ثبت بیزینس در دیتابیس برای صادر شدن آیدی معتبر عددی
       const saved = await apiFetch("POST", "api/businesses", {
         name: biz.name,
         address: biz.address,
@@ -130,10 +129,10 @@ function AreaSearch({ onAdded }) {
         status: "prospect",
       });
       
-      // ۲. حالا آیدی واقعی صادر شده را برای کلاود می‌فرستیم تا وب‌سایت پرمیوم ساخته شود
+      // ۲. ارسال آیدی واقعی به همراه بدنه دیتا به روت ساخت قالب کلاود
       const gen = await apiFetch("POST", `api/generate/${saved.id}`, saved);
       
-      // اصلاح آدرس لینک پیش‌نمایش به آدرس مستقیم بک‌باند
+      // هدایت مستقیم لینک پیش‌نمایش به سرور بک‌اَند ریلوای جهت جلوگیری از ۴۰۴
       const cleanAPI = API.endsWith("/") ? API.slice(0, -1) : API;
       const previewLink = `${cleanAPI}/preview/${gen.slug}`;
       
@@ -171,9 +170,10 @@ function AreaSearch({ onAdded }) {
 
   return (
     <div style={{ padding:"28px 32px", maxWidth:1100 }}>
-      <div style={{ background: "#fff", padding: 20, borderRadius: 12, border: "1.5px solid #e5e7eb", marginBottom: 20 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: "#10b981", marginBottom: 4 }}>⚙️ API CONNECTION STATUS</div>
-        <div style={{ fontSize: 12, color: "#4b5563" }}>Connected Endpoint: <code style={{ background: "#f3f4f6", padding: "2px 6px", borderRadius: 4 }}>{API}</code></div>
+      {/* هدر وضعیت اتصال مانیتورینگ برای توسعه دهنده */}
+      <div style={{ background: "#fff", padding: 16, borderRadius: 12, border: "1.5px solid #e5e7eb", marginBottom: 20 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "#10b981", marginBottom: 4 }}>⚙️ API CONNECTION MONITOR</div>
+        <div style={{ fontSize: 12, color: "#4b5563" }}>Active Backend URL: <code style={{ background: "#f3f4f6", padding: "2px 6px", borderRadius: 4, color: "#ef4444", fontWeight: "bold" }}>{API}</code></div>
       </div>
 
       <h2 style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:20, marginBottom:5 }}>
@@ -296,7 +296,7 @@ function AreaSearch({ onAdded }) {
   );
 }
 
-// ─── DETAIL PANEL ─────────────────────────────────────────────────────────────
+// ─── DETAIL PANEL COMPONENT ──────────────────────────────────────────────────
 function DetailPanel({ biz, onClose, onUpdated, onDeleted }) {
   const [notes, setNotes]   = useState(biz.notes || "");
   const [status, setStatus] = useState(biz.status);
@@ -371,7 +371,7 @@ function DetailPanel({ biz, onClose, onUpdated, onDeleted }) {
             </div>
           ))}
 
-          {/* Live Preview Link */}
+          {/* Live Preview Link - روت دهی اصلاح شده مستقیم به سرور اصلی */}
           {liveUrl && (
             <div style={{ background:"#f0fdf4", border:"1.5px solid #86efac", borderRadius:10, padding:"12px 14px", marginTop:6, marginBottom:14 }}>
               <div style={{ fontSize:11, color:"#166534", fontWeight:700, marginBottom:6 }}>✅ Site Preview is Live</div>
@@ -431,7 +431,7 @@ function DetailPanel({ biz, onClose, onUpdated, onDeleted }) {
   );
 }
 
-// ─── PIPELINE ─────────────────────────────────────────────────────────────────
+// ─── PIPELINE COMPONENT ──────────────────────────────────────────────────────
 function Pipeline({ refreshKey, onSelect }) {
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading]       = useState(true);
@@ -477,7 +477,7 @@ function Pipeline({ refreshKey, onSelect }) {
       {loading ? (
         <div style={{ display:"flex", justifyContent:"center", padding:60 }}><Spinner size={30} dark/></div>
       ) : businesses.length === 0 ? (
-        <div style={{ textalign:"center", padding:60, color:"#9ca3af" }}>
+        <div style={{ textAlign:"center", padding:60, color:"#9ca3af" }}>
           <div style={{ fontSize:40, marginBottom:12 }}>📭</div>
           <div style={{ fontWeight:700, fontSize:15, color:"#374151" }}>No businesses yet</div>
           <div style={{ fontSize:13, marginTop:5 }}>Use Area Search to find prospects</div>
@@ -522,21 +522,21 @@ function Pipeline({ refreshKey, onSelect }) {
   );
 }
 
-// ─── ROOT APP ─────────────────────────────────────────────────────────────────
+// ─── ROOT APP COMPONENT ──────────────────────────────────────────────────────
 export default function App() {
   const [tab, setTab]           = useState("search");
   const [selected, setSelected] = useState(null);
   const [refreshKey, setRefresh] = useState(0);
   const [stats, setStats]       = useState({ total:0, delivered:0 });
 
-  async function loadStats() {
+  const loadStats = useCallback(async () => {
     try {
       const data = await apiFetch("GET", "api/businesses");
       setStats({ total: data.length, delivered: data.filter(b=>b.status==="delivered").length });
     } catch {}
-  }
+  }, []);
 
-  useEffect(() => { loadStats(); }, [refreshKey]);
+  useEffect(() => { loadStats(); }, [refreshKey, loadStats]);
 
   function refresh() { setRefresh(k=>k+1); setTab("pipeline"); }
 
@@ -605,7 +605,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* MAIN */}
+      {/* MAIN CONTENT AREA */}
       <div style={{ marginLeft:215, minHeight:"100vh" }}>
         {/* Top bar */}
         <div style={{ padding:"14px 26px", background:"#fff", borderBottom:"1px solid #f0f0f0", display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:40 }}>
