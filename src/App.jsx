@@ -72,10 +72,15 @@ export default function App() {
       const r = await api("POST", "api/discover", {
         area: area.trim(),
         category: category || undefined,
-        limit: 12,
+        limit: 20,
       });
       setDiscoverResults(r.businesses || []);
-      setDiscoverMeta({ scanned: r.scanned, count: r.count });
+      setDiscoverMeta({
+        scanned: r.scanned,
+        count: r.count,
+        queries_used: r.queries_used,
+        details_checked: r.details_checked,
+      });
       if (!r.businesses?.length) notify("No website-less businesses found here. Try a wider area.", "error");
       else notify(`Found ${r.businesses.length} businesses without a website!`);
     } catch (e) {
@@ -223,22 +228,52 @@ export default function App() {
                 style={{ ...S.input, minWidth: 280 }} />
               <select value={category} onChange={e => setCategory(e.target.value)}
                 style={{ ...S.input, flex: "0 0 220px", cursor: "pointer" }}>
-                <option value="">All categories (broad search)</option>
-                <option value="restaurants">Restaurants</option>
-                <option value="salons">Salons & Spa</option>
-                <option value="barber shops">Barbershops</option>
-                <option value="auto repair">Auto Repair</option>
-                <option value="dentists">Dentists</option>
-                <option value="gyms">Gyms</option>
-                <option value="cafes">Cafes</option>
-                <option value="medical clinics">Medical Clinics</option>
-                <option value="lawyers">Lawyers</option>
-                <option value="plumbers">Plumbers</option>
-                <option value="electricians">Electricians</option>
-                <option value="cleaning services">Cleaning</option>
-                <option value="landscapers">Landscapers</option>
-                <option value="roofers">Roofers</option>
-                <option value="pet groomers">Pet Services</option>
+                <option value="">All (21-category small-biz scan)</option>
+                <optgroup label="── Personal services ──">
+                  <option value="barber shops">Barbershops</option>
+                  <option value="nail salons">Nail Salons</option>
+                  <option value="hair salons">Hair Salons</option>
+                  <option value="tattoo shops">Tattoo Shops</option>
+                  <option value="tailors">Tailors</option>
+                  <option value="dry cleaners">Dry Cleaners</option>
+                </optgroup>
+                <optgroup label="── Auto ──">
+                  <option value="auto repair">Auto Repair</option>
+                  <option value="tire shops">Tire Shops</option>
+                  <option value="car detailing">Car Detailing</option>
+                  <option value="car wash">Car Wash</option>
+                </optgroup>
+                <optgroup label="── Food ──">
+                  <option value="taquerias">Taquerias</option>
+                  <option value="food trucks">Food Trucks</option>
+                  <option value="donut shops">Donut Shops</option>
+                  <option value="ice cream shops">Ice Cream Shops</option>
+                  <option value="small family restaurants">Small Restaurants</option>
+                  <option value="bakeries">Bakeries</option>
+                  <option value="cafes">Cafes</option>
+                </optgroup>
+                <optgroup label="── Home & services ──">
+                  <option value="handymen">Handymen</option>
+                  <option value="locksmiths">Locksmiths</option>
+                  <option value="lawn care">Lawn Care</option>
+                  <option value="plumbers">Plumbers</option>
+                  <option value="electricians">Electricians</option>
+                  <option value="cleaning services">Cleaning</option>
+                  <option value="pet groomers">Pet Groomers</option>
+                </optgroup>
+                <optgroup label="── Retail ──">
+                  <option value="convenience stores">Convenience Stores</option>
+                  <option value="ethnic markets">Ethnic Markets</option>
+                  <option value="florists">Florists</option>
+                  <option value="smoke shops">Smoke Shops</option>
+                </optgroup>
+                <optgroup label="── Professional ──">
+                  <option value="tax preparers">Tax Preparers</option>
+                  <option value="notaries">Notaries</option>
+                  <option value="dentists">Dentists</option>
+                  <option value="medical clinics">Medical Clinics</option>
+                  <option value="lawyers">Lawyers</option>
+                </optgroup>
               </select>
               <button onClick={handleDiscover} disabled={discovering} style={{
                 ...S.btn("#6366f1"), padding: "12px 28px",
@@ -249,8 +284,10 @@ export default function App() {
             </div>
 
             {discoverMeta && (
-              <div style={{ fontSize: 12, color: "#64748b", marginBottom: 24 }}>
-                Scanned {discoverMeta.scanned} businesses on Google · {discoverMeta.count} have no website
+              <div style={{ fontSize: 12, color: "#64748b", marginBottom: 24, display: "flex", gap: 18, flexWrap: "wrap" }}>
+                <span>🔎 Scanned <b style={{ color: "#94a3b8" }}>{discoverMeta.scanned}</b> Google profiles across <b style={{ color: "#94a3b8" }}>{discoverMeta.queries_used}</b> {discoverMeta.queries_used === 1 ? "query" : "categories"}</span>
+                <span>📋 Checked <b style={{ color: "#94a3b8" }}>{discoverMeta.details_checked}</b> in detail</span>
+                <span style={{ color: "#10b981" }}>✅ Found <b>{discoverMeta.count}</b> without a website</span>
               </div>
             )}
 
