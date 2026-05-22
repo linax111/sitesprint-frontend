@@ -72,7 +72,7 @@ export default function App() {
       const r = await api("POST", "api/discover", {
         area: area.trim(),
         category: category || undefined,
-        limit: 20,
+        limit: 50,
       });
       setDiscoverResults(r.businesses || []);
       setDiscoverMeta({
@@ -227,21 +227,31 @@ export default function App() {
                 placeholder="Area (e.g. Ballantyne Charlotte NC)"
                 style={{ ...S.input, minWidth: 280 }} />
               <select value={category} onChange={e => setCategory(e.target.value)}
-                style={{ ...S.input, flex: "0 0 220px", cursor: "pointer" }}>
-                <option value="">All (21-category small-biz scan)</option>
-                <optgroup label="── Personal services ──">
+                style={{ ...S.input, flex: "0 0 240px", cursor: "pointer" }}>
+                <option value="">All (55-category small-biz scan)</option>
+                <optgroup label="── Personal care & beauty ──">
                   <option value="barber shops">Barbershops</option>
                   <option value="nail salons">Nail Salons</option>
                   <option value="hair salons">Hair Salons</option>
+                  <option value="beauty salons">Beauty Salons</option>
                   <option value="tattoo shops">Tattoo Shops</option>
+                  <option value="piercing studios">Piercing Studios</option>
+                  <option value="lash studios">Lash Studios</option>
+                  <option value="brow studios">Brow Studios</option>
+                  <option value="massage therapists">Massage Therapists</option>
                   <option value="tailors">Tailors</option>
                   <option value="dry cleaners">Dry Cleaners</option>
+                  <option value="shoe repair">Shoe Repair</option>
                 </optgroup>
                 <optgroup label="── Auto ──">
                   <option value="auto repair">Auto Repair</option>
                   <option value="tire shops">Tire Shops</option>
                   <option value="car detailing">Car Detailing</option>
                   <option value="car wash">Car Wash</option>
+                  <option value="auto body shops">Auto Body</option>
+                  <option value="oil change shops">Oil Change</option>
+                  <option value="mobile mechanics">Mobile Mechanics</option>
+                  <option value="auto glass repair">Auto Glass</option>
                 </optgroup>
                 <optgroup label="── Food ──">
                   <option value="taquerias">Taquerias</option>
@@ -250,6 +260,15 @@ export default function App() {
                   <option value="ice cream shops">Ice Cream Shops</option>
                   <option value="small family restaurants">Small Restaurants</option>
                   <option value="bakeries">Bakeries</option>
+                  <option value="sandwich shops">Sandwich Shops</option>
+                  <option value="pizzerias">Pizzerias</option>
+                  <option value="bbq joints">BBQ Joints</option>
+                  <option value="juice bars">Juice Bars</option>
+                  <option value="smoothie shops">Smoothie Shops</option>
+                  <option value="boba tea shops">Boba Tea</option>
+                  <option value="halal restaurants">Halal Restaurants</option>
+                  <option value="vietnamese restaurants">Vietnamese</option>
+                  <option value="ethiopian restaurants">Ethiopian</option>
                   <option value="cafes">Cafes</option>
                 </optgroup>
                 <optgroup label="── Home & services ──">
@@ -260,16 +279,28 @@ export default function App() {
                   <option value="electricians">Electricians</option>
                   <option value="cleaning services">Cleaning</option>
                   <option value="pet groomers">Pet Groomers</option>
+                  <option value="junk removal">Junk Removal</option>
+                  <option value="moving companies">Moving</option>
+                  <option value="painters">Painters</option>
+                  <option value="fence contractors">Fence</option>
+                  <option value="hvac repair">HVAC Repair</option>
                 </optgroup>
                 <optgroup label="── Retail ──">
                   <option value="convenience stores">Convenience Stores</option>
                   <option value="ethnic markets">Ethnic Markets</option>
                   <option value="florists">Florists</option>
                   <option value="smoke shops">Smoke Shops</option>
+                  <option value="thrift stores">Thrift Stores</option>
+                  <option value="consignment shops">Consignment</option>
                 </optgroup>
-                <optgroup label="── Professional ──">
+                <optgroup label="── Professional & specialty ──">
                   <option value="tax preparers">Tax Preparers</option>
                   <option value="notaries">Notaries</option>
+                  <option value="tutors">Tutors</option>
+                  <option value="music lessons">Music Lessons</option>
+                  <option value="dance studios">Dance Studios</option>
+                  <option value="martial arts dojos">Martial Arts</option>
+                  <option value="photographers">Photographers</option>
                   <option value="dentists">Dentists</option>
                   <option value="medical clinics">Medical Clinics</option>
                   <option value="lawyers">Lawyers</option>
