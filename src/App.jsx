@@ -319,7 +319,19 @@ function App({ user, onLogout }) {
       background: "radial-gradient(ellipse at top left, rgba(99,102,241,.04), transparent 50%), #06060c",
       color: "#e2e8f0",
     }}>
-
+      <style>{`
+        select option {
+          background: #14141a !important;
+          color: #e2e8f0 !important;
+          padding: 8px !important;
+        }
+        select optgroup {
+          background: #0a0a14 !important;
+          color: #818cf8 !important;
+          font-style: italic;
+          font-weight: 700;
+        }
+      `}</style>
       {/* SIDEBAR */}
       <div style={S.sidebar}>
         <div style={{ padding: "22px 22px 20px", borderBottom: "1px solid rgba(255,255,255,.06)" }}>
@@ -478,10 +490,9 @@ function App({ user, onLogout }) {
                       <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>{biz.category} · {biz.address}</div>
                       {biz.phone && <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>📞 {biz.phone}</div>}
                       <div style={{ display: "flex", gap: 14, marginTop: 10, fontSize: 12, flexWrap: "wrap" }}>
-                        <span style={{ color: "#fbbf24" }}>★ {biz.rating} ({biz.review_count})</span>
+                        <span style={{ color: "#fbbf24" }}>★ {biz.rating} · {biz.review_count} Google reviews</span>
                         <span style={{ color: "#ef4444" }}>🚫 No website</span>
                         <span style={{ color: "#10b981" }}>📷 {biz.photos?.length || 0} photos</span>
-                        <span style={{ color: "#a78bfa" }}>💬 {biz.reviews?.length || 0} reviews</span>
                       </div>
                     </div>
                     <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
