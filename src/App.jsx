@@ -36,6 +36,7 @@ export default function App() {
   // Discover
   const [area, setArea] = useState("");
   const [category, setCategory] = useState("");
+  const [deepScan, setDeepScan] = useState(false);
   const [discoverResults, setDiscoverResults] = useState([]);
   const [discovering, setDiscovering] = useState(false);
   const [discoverMeta, setDiscoverMeta] = useState(null);
@@ -73,6 +74,7 @@ export default function App() {
         area: area.trim(),
         category: category || undefined,
         limit: 50,
+        deep: deepScan,
       });
       setDiscoverResults(r.businesses || []);
       setDiscoverMeta({
@@ -80,6 +82,8 @@ export default function App() {
         count: r.count,
         queries_used: r.queries_used,
         details_checked: r.details_checked,
+        details_from_cache: r.details_from_cache,
+        estimated_cost_usd: r.estimated_cost_usd,
       });
       if (!r.businesses?.length) notify("No website-less businesses found here. Try a wider area.", "error");
       else notify(`Found ${r.businesses.length} businesses without a website!`);
@@ -228,7 +232,7 @@ export default function App() {
                 style={{ ...S.input, minWidth: 280 }} />
               <select value={category} onChange={e => setCategory(e.target.value)}
                 style={{ ...S.input, flex: "0 0 240px", cursor: "pointer" }}>
-                <option value="">All (55-category small-biz scan)</option>
+                <option value="">All (default scan, ~$2)</option>
                 <optgroup label="── Personal care & beauty ──">
                   <option value="barber shops">Barbershops</option>
                   <option value="nail salons">Nail Salons</option>
@@ -314,11 +318,26 @@ export default function App() {
               </button>
             </div>
 
+            <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 24, fontSize: 12, color: "#94a3b8", flexWrap: "wrap" }}>
+              {!category && (
+                <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", userSelect: "none" }}>
+                  <input type="checkbox" checked={deepScan} onChange={e => setDeepScan(e.target.checked)} style={{ accentColor: "#8b5cf6" }} />
+                  <span>Deep scan (49 categories, ~$6 each — 3x more results, 3x cost)</span>
+                </label>
+              )}
+              <span style={{ color: "#475569", marginLeft: "auto" }}>
+                💡 Re-searching same area is nearly free (place details cached in DB)
+              </span>
+            </div>
+
             {discoverMeta && (
               <div style={{ fontSize: 12, color: "#64748b", marginBottom: 24, display: "flex", gap: 18, flexWrap: "wrap" }}>
-                <span>🔎 Scanned <b style={{ color: "#94a3b8" }}>{discoverMeta.scanned}</b> Google profiles across <b style={{ color: "#94a3b8" }}>{discoverMeta.queries_used}</b> {discoverMeta.queries_used === 1 ? "query" : "categories"}</span>
-                <span>📋 Checked <b style={{ color: "#94a3b8" }}>{discoverMeta.details_checked}</b> in detail</span>
+                <span>🔎 Scanned <b style={{ color: "#94a3b8" }}>{discoverMeta.scanned}</b> across <b style={{ color: "#94a3b8" }}>{discoverMeta.queries_used}</b> {discoverMeta.queries_used === 1 ? "query" : "categories"}</span>
+                <span>📋 Checked <b style={{ color: "#94a3b8" }}>{discoverMeta.details_checked}</b> ({discoverMeta.details_from_cache || 0} from cache)</span>
                 <span style={{ color: "#10b981" }}>✅ Found <b>{discoverMeta.count}</b> without a website</span>
+                {discoverMeta.estimated_cost_usd && (
+                  <span style={{ color: "#fbbf24" }}>💰 Est. Google cost: <b>${discoverMeta.estimated_cost_usd}</b></span>
+                )}
               </div>
             )}
 
